@@ -1,8 +1,13 @@
-import java.lang.Thread.sleep
+import kotlin.random.Random
+
+/**
+ * Процессор простаивает меньше при случае, когда задач cpu/io 80/20 больше
+ * Наилучшая скорость выполнения при случае, когда задач промерно одинаковое количество
+ */
 
 object Main {
 
-    data class Task(var nubmer: Int, var cpu: Int, var io: Int)
+    data class Task(var number: Int, var cpu: Int, var io: Int)
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -10,14 +15,26 @@ object Main {
         lists.add(arrayListOf())
         lists.add(arrayListOf())
         lists.add(arrayListOf())
-        lists[0].add(Task(1, 2, 3))
-        lists[1].add(Task(2, 1, 4))
-        lists[2].add(Task(3, 2, 4))
+        for (number in 1..950) {
+            val r = Random.nextInt(10)
+            lists[0].add(Task(1000 + number, 20 + r, 80 - r))
+        }
+        for (number in 1..950) {
+            val r = Random.nextInt(10)
+            lists[1].add(Task(2000 + number, 45 + r, 55 - r))
+        }
+        for (number in 1..1100) {
+            val r = Random.nextInt(10)
+            lists[2].add(Task(3000 + number, 70 + r, 30 - r))
+        }
+        for (list in lists) {
+            println(list)
+        }
 
         var stopsCpu = 0
         var stopsIo = 0
 
-        val delta = 2
+        val delta = 10
         var deltaCpu = delta
         var deltaIo = delta
 
@@ -42,7 +59,7 @@ object Main {
                     }
                 }
                 forwardCpuList = (forwardCpuList + 1) % lists.size
-                i++;
+                i++
             }
 
             var j = 0
@@ -55,7 +72,7 @@ object Main {
                     }
                 }
                 forwardIoList = (forwardIoList + 1) % lists.size
-                j++;
+                j++
             }
             if (currentCpuTask == null && currentIoTask == null) {
                 break
@@ -112,10 +129,11 @@ object Main {
             }
 
             println()
-            sleep(400)
+//            sleep(400)
         }
         println("the end")
         println("CPU stops: $stopsCpu")
         println("IO stops: $stopsIo")
+        println("ALL stops: " + (stopsCpu + stopsIo))
     }
 }
