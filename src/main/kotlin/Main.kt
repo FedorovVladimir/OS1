@@ -10,7 +10,7 @@ object Main {
         lists.add(arrayListOf())
         lists.add(arrayListOf())
         lists.add(arrayListOf())
-        lists[0].add(Task(1, 2, 2))
+        lists[0].add(Task(1, 2, 3))
         lists[1].add(Task(2, 1, 4))
         lists[2].add(Task(3, 2, 4))
 
@@ -35,7 +35,7 @@ object Main {
             var i = 0
             while (i < lists.size && currentCpuTask == null) {
                 for (task in lists[forwardCpuList]) {
-                    if (task.cpu > 0) {
+                    if (task.cpu > 0 && task.io == 0) {
                         currentCpuList = lists[forwardCpuList]
                         currentCpuTask = task
                         deltaCpu = delta
