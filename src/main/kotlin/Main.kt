@@ -7,133 +7,98 @@ import kotlin.random.Random
 
 object Main {
 
-    data class Task(var number: Int, var cpu: Int, var io: Int)
+    data class Task(var isCpu: Boolean, var n: Int, var cpu: Int, var io: Int)
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val lists: ArrayList<ArrayList<Task>> = arrayListOf()
-        lists.add(arrayListOf())
-        lists.add(arrayListOf())
-        lists.add(arrayListOf())
-        for (number in 1..950) {
+        val list: ArrayList<Task> = arrayListOf()
+        for (number in 1..2) {
             val r = Random.nextInt(10)
-            lists[0].add(Task(1000 + number, 20 + r, 80 - r))
+            list.add(Task(Random.nextBoolean(), 1000 + number, 20 + r, 80 - r))
         }
-        for (number in 1..950) {
+        for (number in 1..2) {
             val r = Random.nextInt(10)
-            lists[1].add(Task(2000 + number, 45 + r, 55 - r))
+            list.add(Task(Random.nextBoolean(), 2000 + number, 45 + r, 55 - r))
         }
-        for (number in 1..1100) {
+        for (number in 1..2) {
             val r = Random.nextInt(10)
-            lists[2].add(Task(3000 + number, 70 + r, 30 - r))
+            list.add(Task(Random.nextBoolean(), 3000 + number, 70 + r, 30 - r))
         }
-        for (list in lists) {
-            println(list)
-        }
+        println(list)
 
-        var stopsCpu = 0
-        var stopsIo = 0
-
-        val delta = 10
-        var deltaCpu = delta
-        var deltaIo = delta
-
-        var forwardCpuList = 0
-        var forwardIoList = 0
-
-        var currentCpuTask: Task? = null
-        var currentCpuList: ArrayList<Task>? = null
-
-        var currentIoTask: Task? = null
-        var currentIoList: ArrayList<Task>? = null
-
+        var selectCpu = true
+        var selectIo = true
+        var indexCpu = -1
+        var indexIo = -1
+        var deltaCpu = 0
+        var deltaIo = 0
         while (true) {
-            // select tasks
-            var i = 0
-            while (i < lists.size && currentCpuTask == null) {
-                for (task in lists[forwardCpuList]) {
-                    if (task.cpu > 0 && task.io == 0) {
-                        currentCpuList = lists[forwardCpuList]
-                        currentCpuTask = task
-                        deltaCpu = delta
+            if (selectCpu) {
+                for (i in 0..list.size) {
+                    indexCpu = (indexCpu + 1) % list.size
+                    if (list[indexCpu].isCpu) {
+                        selectCpu = !selectCpu
+                        deltaCpu = Random.nextInt(10)
+                        break
                     }
                 }
-                forwardCpuList = (forwardCpuList + 1) % lists.size
-                i++
-            }
-
-            var j = 0
-            while (j < lists.size && currentIoTask == null) {
-                for (task in lists[forwardIoList]) {
-                    if (task.io > 0) {
-                        currentIoList = lists[forwardIoList]
-                        currentIoTask = task
-                        deltaIo = delta
-                    }
-                }
-                forwardIoList = (forwardIoList + 1) % lists.size
-                j++
-            }
-            if (currentCpuTask == null && currentIoTask == null) {
-                break
-            }
-
-            // work cpu
-            if (currentCpuTask != null) {
-                currentCpuTask.let {
-                    it.cpu--
+            } else {
+                if (deltaCpu > 0 && list[indexCpu].cpu > 0) {
                     deltaCpu--
-                }
-                print("CPU l$forwardCpuList: $currentCpuTask ")
-
-                if (currentCpuTask.cpu == 0) {
-                    if (currentCpuTask.io == 0) {
-                        currentCpuList?.remove(currentCpuTask)
+                    list[indexCpu].cpu--
+                    if (list[indexCpu].cpu == 0 && list[indexCpu].io == 0) {
+                        list.removeAt(indexCpu)
+                        selectCpu = !selectCpu
+                        if (indexIo > indexCpu) {
+                            indexIo--
+                        }
+                        if (indexCpu > 0) {
+                            indexCpu--
+                        }
                     }
-                    currentCpuList = null
-                    currentCpuTask = null
+                } else {
+                    list[indexCpu].isCpu = !list[indexCpu].isCpu
+                    selectCpu = !selectCpu
                 }
-
-                if (deltaCpu == 0) {
-                    currentCpuList = null
-                    currentCpuTask = null
-                }
-            } else {
-                stopsCpu++
-                print("CPU: stop ")
             }
 
-            // work io
-            if (currentIoTask != null) {
-                currentIoTask.let {
-                    it.io--
+            if (selectIo) {
+                for (i in 0..list.size) {
+                    indexIo = (indexIo + 1) % list.size
+                    if (!list[indexIo].isCpu) {
+                        selectIo = !selectIo
+                        deltaIo = Random.nextInt(10)
+                        break
+                    }
+                }
+            } else {
+                if (deltaIo > 0 && list[indexIo].io > 0) {
                     deltaIo--
-                }
-                print("IO l$forwardIoList: $currentIoTask ")
-
-                if (currentIoTask.io == 0) {
-                    if (currentIoTask.cpu == 0) {
-                        currentIoList?.remove(currentIoTask)
+                    list[indexIo].io--
+                    if (list[indexIo].cpu == 0 && list[indexIo].io == 0) {
+                        list.removeAt(indexIo)
+                        selectIo = !selectIo
+                        if (indexCpu > indexIo) {
+                            indexCpu--
+                        }
+                        if (indexIo > 0) {
+                            indexIo--
+                        }
                     }
-                    currentIoList = null
-                    currentIoTask = null
+                } else {
+                    list[indexIo].isCpu = !list[indexIo].isCpu
+                    selectIo = !selectIo
                 }
-
-                if (deltaIo == 0) {
-                    currentIoList = null
-                    currentIoTask = null
-                }
-            } else {
-                stopsIo++
-                print("IO: stop ")
             }
 
-            println()
-//            sleep(400)
+
+            if (list.isEmpty()) {
+                break
+            } else {
+                println("work cpu: ${list[indexCpu].n}($indexCpu) work io: ${list[indexIo].n}($indexIo)")
+                println(list)
+            }
+//            readLine()
         }
-        println("the end")
-        println("CPU stops: $stopsCpu")
-        println("IO stops: $stopsIo")
-        println("ALL stops: " + (stopsCpu + stopsIo))
     }
 }
